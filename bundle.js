@@ -10886,6 +10886,26 @@ class ShaderProgram {
 
 /***/ }),
 
+/***/ "./src/shaders/custom-frag.glsl":
+/*!**************************************!*\
+  !*** ./src/shaders/custom-frag.glsl ***!
+  \**************************************/
+/***/ ((module) => {
+
+module.exports = "#version 300 es\n\n// This is a fragment shader. If you've opened this file first, please\n// open and read lambert.vert.glsl before reading on.\n// Unlike the vertex shader, the fragment shader actually does compute\n// the shading of geometry. For every pixel in your program's output\n// screen, the fragment shader is run for every bit of geometry that\n// particular pixel overlaps. By implicitly interpolating the position\n// data passed into the fragment shader by the vertex shader, the fragment shader\n// can compute what color to apply to its pixel based on things like vertex\n// position, light position, and vertex color.\nprecision highp float;\n\nuniform vec4 u_Color; // The color with which to render this instance of geometry.\n\n// These are the interpolated values out of the rasterizer, so you can't know\n// their specific values without knowing the vertices that contributed to them\nin vec4 fs_Nor;\nin vec4 fs_LightVec;\nin vec4 fs_Col;\n\nin vec4 fs_Pos;\n\nout vec4 out_Col; // This is the final output color that you will see on your\n                  // screen for the pixel that is currently being processed.\n\n\n// reused from 5600\nvec3 random3D( vec3 p ) {\n    return fract(sin(vec3(dot(p, vec3(127.1f, 311.7f, 191.999f)),\n                                         dot(p, vec3(269.5f, 183.3f, 773.2f)),\n                                         dot(p, vec3(103.37f, 217.83f, 523.7f)))) * 43758.5453f);\n}\n\nvoid main()\n{\n    // Material base color (before shading)\n        vec4 diffuseColor = u_Color;\n\n        // Calculate the diffuse term for Lambert shading\n        float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));\n        // Avoid negative lighting values\n        // diffuseTerm = clamp(diffuseTerm, 0, 1);\n\n        float ambientTerm = 0.2;\n\n        float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier\n                                                            //to simulate ambient lighting. This ensures that faces that are not\n                                                            //lit by our point light are not completely black.\n\n        // Compute final shaded color\n        // diffuseColor = vec4(sin(gl_FragCoord.xyz), 1);\n        // diffuseColor = vec4(sin(fs_Pos.xyz), 1);\n        diffuseColor = vec4(random3D(floor(fs_Pos.xyz * 10.f)), 1.f);\n        // diffuseColor = vec4(random3D(gl_FragCoord.xyz), 1);\n        out_Col = vec4(diffuseColor.rgb * lightIntensity, diffuseColor.a);\n}\n"
+
+/***/ }),
+
+/***/ "./src/shaders/custom-vert.glsl":
+/*!**************************************!*\
+  !*** ./src/shaders/custom-vert.glsl ***!
+  \**************************************/
+/***/ ((module) => {
+
+module.exports = "#version 300 es\n\n//This is a vertex shader. While it is called a \"shader\" due to outdated conventions, this file\n//is used to apply matrix transformations to the arrays of vertex data passed to it.\n//Since this code is run on your GPU, each vertex is transformed simultaneously.\n//If it were run on your CPU, each vertex would have to be processed in a FOR loop, one at a time.\n//This simultaneous transformation allows your program to run much faster, especially when rendering\n//geometry with millions of vertices.\n\nuniform mat4 u_Model;       // The matrix that defines the transformation of the\n                            // object we're rendering. In this assignment,\n                            // this will be the result of traversing your scene graph.\n\nuniform mat4 u_ModelInvTr;  // The inverse transpose of the model matrix.\n                            // This allows us to transform the object's normals properly\n                            // if the object has been non-uniformly scaled.\n\nuniform mat4 u_ViewProj;    // The matrix that defines the camera's transformation.\n                            // We've written a static matrix for you to use for HW2,\n                            // but in HW3 you'll have to generate one yourself\n\nin vec4 vs_Pos;             // The array of vertex positions passed to the shader\n\nin vec4 vs_Nor;             // The array of vertex normals passed to the shader\n\nin vec4 vs_Col;             // The array of vertex colors passed to the shader.\n\nout vec4 fs_Nor;            // The array of normals that has been transformed by u_ModelInvTr. This is implicitly passed to the fragment shader.\nout vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.\nout vec4 fs_Pos;\n\nconst vec4 lightPos = vec4(5, 5, 3, 1); //The position of our virtual light, which is used to compute the shading of\n                                        //the geometry in the fragment shader.\n\nvoid main()\n{\n    fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation\n\n    mat3 invTranspose = mat3(u_ModelInvTr);\n    fs_Nor = vec4(invTranspose * vec3(vs_Nor), 0);          // Pass the vertex normals to the fragment shader for interpolation.\n                                                            // Transform the geometry's normals by the inverse transpose of the\n                                                            // model matrix. This is necessary to ensure the normals remain\n                                                            // perpendicular to the surface after the surface is transformed by\n                                                            // the model matrix.\n\n\n    vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below\n\n    fs_LightVec = lightPos - modelposition;  // Compute the direction in which the light source lies\n\n    gl_Position = u_ViewProj * modelposition;// gl_Position is a built-in variable of OpenGL which is\n                                             // used to render the final positions of the geometry's vertices\n    fs_Pos = modelposition;\n    \n}\n"
+
+/***/ }),
+
 /***/ "./src/shaders/lambert-frag.glsl":
 /*!***************************************!*\
   !*** ./src/shaders/lambert-frag.glsl ***!
@@ -11006,7 +11026,8 @@ const Stats = __webpack_require__(/*! stats-js */ "./node_modules/stats-js/build
 const controls = {
     tesselations: 5,
     'Load Scene': loadScene,
-    Color: [255, 0, 0]
+    Color: [255, 0, 0],
+    "Lambertian Shader": false
     // Color: "#ff0000"
 };
 let icosphere;
@@ -11034,6 +11055,7 @@ function main() {
     gui.add(controls, 'tesselations', 0, 8).step(1);
     gui.add(controls, 'Load Scene');
     gui.addColor(controls, "Color");
+    gui.add(controls, 'Lambertian Shader');
     // get canvas and webgl context
     const canvas = document.getElementById('canvas');
     const gl = canvas.getContext('webgl2');
@@ -11053,6 +11075,10 @@ function main() {
         new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.VERTEX_SHADER, __webpack_require__(/*! ./shaders/lambert-vert.glsl */ "./src/shaders/lambert-vert.glsl")),
         new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.FRAGMENT_SHADER, __webpack_require__(/*! ./shaders/lambert-frag.glsl */ "./src/shaders/lambert-frag.glsl")),
     ]);
+    const noiseShaderProgram = new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__["default"]([
+        new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.VERTEX_SHADER, __webpack_require__(/*! ./shaders/custom-vert.glsl */ "./src/shaders/custom-vert.glsl")),
+        new _rendering_gl_ShaderProgram__WEBPACK_IMPORTED_MODULE_7__.Shader(gl.FRAGMENT_SHADER, __webpack_require__(/*! ./shaders/custom-frag.glsl */ "./src/shaders/custom-frag.glsl")),
+    ]);
     // This function will be called every frame
     function tick() {
         camera.update();
@@ -11065,7 +11091,7 @@ function main() {
             icosphere.create();
         }
         // if (controls.Color != )
-        renderer.render(camera, lambert, [
+        renderer.render(camera, controls["Lambertian Shader"] ? lambert : noiseShaderProgram, [
             // icosphere,
             // square,
             cube
