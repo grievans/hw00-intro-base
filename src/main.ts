@@ -15,7 +15,8 @@ import Cube from "./geometry/Cube";
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
-  Color: [255,0,0]
+  Color: [255,0,0],
+  "Lambertian Shader": false
   // Color: "#ff0000"
 };
 
@@ -48,8 +49,10 @@ function main() {
   const gui = new DAT.GUI();
   gui.add(controls, 'tesselations', 0, 8).step(1);
   gui.add(controls, 'Load Scene');
-
+  
   gui.addColor(controls, "Color");
+  gui.add(controls, 'Lambertian Shader');
+
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
   const gl = <WebGL2RenderingContext> canvas.getContext('webgl2');
@@ -74,6 +77,12 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/lambert-frag.glsl')),
   ]);
 
+  const noiseShaderProgram = new ShaderProgram([
+    new Shader(gl.VERTEX_SHADER, require('./shaders/custom-vert.glsl')),
+    new Shader(gl.FRAGMENT_SHADER, require('./shaders/custom-frag.glsl')),
+  ]);
+
+
   // This function will be called every frame
   function tick() {
     camera.update();
@@ -87,7 +96,7 @@ function main() {
       icosphere.create();
     }
     // if (controls.Color != )
-    renderer.render(camera, lambert, [
+    renderer.render(camera, controls["Lambertian Shader"] ? lambert : noiseShaderProgram, [
       // icosphere,
       // square,
       cube
