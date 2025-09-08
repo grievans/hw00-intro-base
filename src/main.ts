@@ -15,6 +15,8 @@ import Cube from "./geometry/Cube";
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
+  Color: [255,0,0]
+  // Color: "#ff0000"
 };
 
 let icosphere: Icosphere;
@@ -47,6 +49,7 @@ function main() {
   gui.add(controls, 'tesselations', 0, 8).step(1);
   gui.add(controls, 'Load Scene');
 
+  gui.addColor(controls, "Color");
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
   const gl = <WebGL2RenderingContext> canvas.getContext('webgl2');
@@ -83,17 +86,19 @@ function main() {
       icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
       icosphere.create();
     }
+    // if (controls.Color != )
     renderer.render(camera, lambert, [
       // icosphere,
       // square,
       cube
-    ]);
+    ],
+    controls.Color);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
   }
-
+  
   window.addEventListener('resize', function() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.setAspectRatio(window.innerWidth / window.innerHeight);

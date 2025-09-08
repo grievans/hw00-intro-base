@@ -31,9 +31,10 @@ class Cube extends Drawable {
 
     let i : number = 0;
     for (let j : number = 0; j < 3; ++j) {
-      for (let z : number = -1; z <= 1; z += 2) {
-        for (let y : number = -1; y <= 1; y += 2) {
-          for (let x : number = -1; x <= 1; x += 2) {
+      for (let z : number = -1; z < 2; z += 2) {
+        for (let y : number = -1; y < 2; y += 2) {
+          for (let x : number = -1; x < 2; x += 2) {
+            // let i : number = ((x + 1) / 2 + 2 * (y + 1) / 2 + 4 * (z + 1) / 2 + j * 8)*4;
             this.positions[i] = x;
             this.positions[i+1] = y;
             this.positions[i+2] = z;
@@ -62,7 +63,7 @@ class Cube extends Drawable {
                                     18,19,22,
                                     19,22,23
                                   ]);
-    this.normals = new Float32Array([0, 0, -1, 0,
+    this.normals = new Float32Array([ 0, 0, -1, 0,
                                       0, 0, -1, 0,
                                       0, 0, -1, 0,
                                       0, 0, -1, 0,
@@ -73,28 +74,27 @@ class Cube extends Drawable {
                                       0, 0, 1, 0,
 
                                       0, -1, 0, 0,
+                                      0, 1, 0, 0,
                                       0, -1, 0, 0,
-                                      0, -1, 0, 0,
-                                      0, -1, 0, 0,
+                                      0, 1, 0, 0,
                                       
+                                      0, -1, 0, 0,
                                       0, 1, 0, 0,
-                                      0, 1, 0, 0,
-                                      0, 1, 0, 0,
+                                      0, -1, 0, 0,
                                       0, 1, 0, 0,
 
                                       -1, 0, 0, 0,
                                       -1, 0, 0, 0,
-                                      -1, 0, 0, 0,
-                                      -1, 0, 0, 0,
+                                      1, 0, 0, 0,
+                                      1, 0, 0, 0,
 
+                                      -1, 0, 0, 0,
+                                      -1, 0, 0, 0,
                                       1, 0, 0, 0,
                                       1, 0, 0, 0,
-                                      1, 0, 0, 0,
-                                      1, 0, 0, 0
 
                                     ]);
 
-    // TODO lighting weird but not sure if that's just how it behaves with this shader normally
 
     this.generateIdx();
     this.generatePos();
@@ -110,6 +110,8 @@ class Cube extends Drawable {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufPos);
     gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
 
+
+    console.log(this.positions);
     console.log(`Created cube`);
   }
 };
