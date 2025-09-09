@@ -122,7 +122,7 @@ void main()
         float perlinResult2 = (perlin3D(fs_Pos.xyz * (5.f + 2.f * sin(2.f + t * 0.015))) + 1.f) * 0.5f;
         float perlinResult3 = (perlin3D(fs_Pos.xyz * (5.f + 2.f * sin(4.f + t * 0.019))) + 1.f) * 0.5f;
         vec3 noiseColor = vec3(perlinResult, perlinResult2, perlinResult3);
-        float spot = smoothstep(0.0f,0.9f,perlin3D(fs_Pos.xyz * 1.5f));
+        float spot = smoothstep(0.0f,0.9f,perlin3D(fs_Pos.xyz * 1.5f)); // aside: smoothstep not really necessary now I think since I ended up just using this as a threshold, so could just adjust what that threshold is
         float spot2 = smoothstep(0.0f,0.9f,perlin3D(fs_Pos.xyz * 3.f));
         float spot3 = smoothstep(0.0f,0.9f,perlin3D(fs_Pos.xyz * 0.75f));
         if (spot > 0.1f) {
