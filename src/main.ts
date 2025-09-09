@@ -15,8 +15,11 @@ import Cube from "./geometry/Cube";
 const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
-  Color: [255,0,0],
-  "Lambertian Shader": false
+  Color: [255,255,255],
+  "Lambertian": false,
+  Cube:true,
+  Sphere:false,
+  Square:false
   // Color: "#ff0000"
 };
 
@@ -25,6 +28,8 @@ let square: Square;
 let prevTesselations: number = 5;
 
 let cube: Cube;
+
+let frameCount : number;
 
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
@@ -51,7 +56,10 @@ function main() {
   gui.add(controls, 'Load Scene');
   
   gui.addColor(controls, "Color");
-  gui.add(controls, 'Lambertian Shader');
+  gui.add(controls, 'Lambertian');
+  gui.add(controls, 'Sphere');
+  gui.add(controls, 'Square');
+  gui.add(controls, 'Cube');
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
@@ -82,6 +90,7 @@ function main() {
     new Shader(gl.FRAGMENT_SHADER, require('./shaders/custom-frag.glsl')),
   ]);
 
+  frameCount = 0;
 
   // This function will be called every frame
   function tick() {
@@ -95,17 +104,29 @@ function main() {
       icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, prevTesselations);
       icosphere.create();
     }
-    // if (controls.Color != )
-    renderer.render(camera, controls["Lambertian Shader"] ? lambert : noiseShaderProgram, [
-      // icosphere,
-      // square,
-      cube
-    ],
+    
+    if (!controls['Lambertian']) {
+      noiseShaderProgram.setTime(++frameCount);
+    }
+
+    let drawArr : any[] = [];
+    if (controls.Cube) {
+      drawArr.push(cube);
+    }
+    if (controls.Square) {
+      drawArr.push(square);
+    }
+    if (controls.Sphere) {
+      drawArr.push(icosphere);
+    }
+
+    renderer.render(camera, controls["Lambertian"] ? lambert : noiseShaderProgram, drawArr,
     controls.Color);
     stats.end();
 
     // Tell the browser to call `tick` again whenever it renders a new frame
     requestAnimationFrame(tick);
+
   }
   
   window.addEventListener('resize', function() {
