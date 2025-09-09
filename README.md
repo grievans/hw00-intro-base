@@ -1,3 +1,18 @@
+# My Results
+
+![](images/screen1.png)
+![](images/screen2.png)
+![](images/screen3.png)
+
+[Live Demo!](https://grievans.github.io/hw00-intro-base/)
+
+In addition to creating the Cube class and a GUI option to control the color passed into the shader, I added additional GUI options which toggle the appearance of each of the shapes (Cube, Square, and Icosphere) and which swaps between the Lambertian model and my noise-based shader.
+
+My vertex shader scales the vertices in proportion with a smoothed sine wave with respect to time (or rather, number of ticks that have occurred) with an offset varying depending on the original coordinate of the vertex, causing a variable bulging in and out across it, in addition to moving the whole shape in a circle (that aspect being applied uniformly unlike the scaling portion; I added it so the shape could cover more ground of the 3D noise patterns used in the fragment shader).
+
+The fragment shader implements both Perlin and Worley Noise in 3D. Firstly it uses perlin noise with three varying frequencies to assign values to the RGB color channels (cycling between scales with a sine function affected by the passing ticks, with different offsets and frequencies for each). Then for each channel we have an additional Perlin noise value (with a different but constant scale for each) which is used as a threshold, such that when it is past a set point the channel changes its value to the inverse of another color channel (e.g. red becomes 1-green). The color resulting from this is multiplied by the diffuse color term calculated using Lambertian shading—though this color term is affected by a Worley noise pattern used as a threshold, such that whenever the distance to the nearest point is below a set value the light vector inverts—hence meaning we have spots of shadow on the faces towards the light and spots of light on the opposite side. Since this diffuse term is multiplied by the Perlin-based noise, one can isolate the different frequencies of noise used by changing the input color; e.g. using [255,0,0] we can only see the noise used for the red component.
+
+
 # HW 0: Intro to Javascript and WebGL
 
 <p align="center">
